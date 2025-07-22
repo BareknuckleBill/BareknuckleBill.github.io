@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Norvinsk Regional Administration - Official Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #2d3436 0%, #636e72 50%, #74b9ff 100%);
+            min-height: 100vh;
+            color: #2d3436;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Subtle grid pattern */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(45, 52, 54, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(45, 52, 54, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Official header bar */
+        .header-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                #74b9ff 0%, 
+                #0984e3 25%, 
+                #74b9ff 50%, 
+                #0984e3 75%, 
+                #74b9ff 100%);
+            z-index: 1000;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(116, 185, 255, 0.3);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0 30px 0;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .official-seal {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #74b9ff 30%, #0984e3 70%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        h1 {
+            color: #2d3436;
+            font-size: 2.8em;
+            font-weight: 400;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #636e72;
+            max-width: 700px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(116, 185, 255, 0.2);
+            border-radius: 8px;
+            padding: 45px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .section-title {
+            color: #2d3436;
+            font-size: 2.2em;
+            font-weight: 300;
+            margin-bottom: 35px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .nav-item {
+            background: rgba(248, 249, 250, 0.9);
+            border: 2px solid rgba(116, 185, 255, 0.2);
+            border-radius: 8px;
+            padding: 30px;
+            text-decoration: none;
+            color: #2d3436;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #74b9ff, #0984e3);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .nav-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(116, 185, 255, 0.5);
+            box-shadow: 
+                0 12px 35px rgba(0, 0, 0, 0.15),
+                0 0 25px rgba(116, 185, 255, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .nav-title {
+            font-size: 1.3em;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #2d3436;
+        }
+
+        .nav-description {
+            font-size: 0.95em;
+            color: #636e72;
+            font-weight: 300;
+            line-height: 1.5;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(116, 185, 255, 0.2);
+            border-radius: 8px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .footer-text {
+            color: #636e72;
+            font-size: 1em;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .official-notice {
+            background: rgba(116, 185, 255, 0.1);
+            border: 1px solid rgba(116, 185, 255, 0.3);
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+            font-size: 0.9em;
+            color: #2d3436;
+        }
+
+        .notice-title {
+            font-weight: 600;
+            color: #0984e3;
+            margin-bottom: 5px;
+        }
+
+        /* Navigation accessibility indicators */
+        .nav-item:focus {
+            outline: 2px solid #74b9ff;
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header, .main-content, footer {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .nav-item {
+                padding: 25px;
+            }
+        }
+
+        /* Smooth entrance animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container > * {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .container > *:nth-child(3) { animation-delay: 0.15s; }
+        .container > *:nth-child(4) { animation-delay: 0.3s; }
+        .container > *:nth-child(5) { animation-delay: 0.45s; }
+    </style>
+</head>
+<body>
+    <div class="header-bar"></div>
+    <div class="grid-overlay"></div>
+    
+    <div class="container">
+        <header>
+            <div class="official-seal">N</div>
+            <h1>Norvinsk Regional Administration</h1>
+            <p class="subtitle">Official Government Portal - Serving citizens with reliable access to regional services, public information, and administrative resources</p>
+        </header>
+
+        <main class="main-content">
+            <h2 class="section-title">Citizen Services</h2>
+            
+            <div class="official-notice">
+                <div class="notice-title">Important Notice</div>
+                This portal provides secure access to official government services. All information is verified and maintained by the Norvinsk Regional Administration.
+            </div>
+            
+            <div class="nav-grid">
+                <a href="about.html" class="nav-item" role="button" tabindex="0">
+                    <div class="nav-icon">ℹ</div>
+                    <div class="nav-title">About Our Region</div>
+                    <div class="nav-description">Learn about Norvinsk's history, culture, geography, and local government structure</div>
+                </a>
+                
+                <a href="services.html" class="nav-item" role="button" tabindex="0">
+                    <div class="nav-icon">⚙</div>
+                    <div class="nav-title">Public Services</div>
+                    <div class="nav-description">Access essential services including permits, licenses, and citizen assistance programs</div>
+                </a>
+                
+                <a href="news.html" class="nav-item" role="button" tabindex="0">
+                    <div class="nav-icon">📰</div>
+                    <div class="nav-title">News & Announcements</div>
+                    <div class="nav-description">Stay informed with official updates, public notices, and community announcements</div>
+                </a>
+                
+                <a href="contact.html" class="nav-item" role="button" tabindex="0">
+                    <div class="nav-icon">📞</div>
+                    <div class="nav-title">Contact Information</div>
+                    <div class="nav-description">Reach our offices for assistance, inquiries, or to report community concerns</div>
+                </a>
+            </div>
+        </main>
+
+        <footer>
+            <p class="footer-text">© 2025 Norvinsk Regional Administration. All rights reserved.<br>Committed to transparent governance and serving the needs of our community.</p>
+        </footer>
+    </div>
+</body>
+</html>
