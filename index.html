@@ -1,0 +1,104 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Norvinsk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            padding: 8px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+        .notification::before {
+            content: '★';
+            color: #f59e0b;
+            margin-right: 8px;
+        }
+        .notification a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .notification a:hover {
+            text-decoration: underline;
+            color: #1e40af;
+        }
+        .verify-button {
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .verify-button:hover {
+            background-color: #1e40af;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center">
+    <div class="text-center px-4">
+        <h1 class="text-3xl font-bold mb-4">Welcome to the Norvinsk Portal</h1>
+        <p class="text-lg mb-6 max-w-md mx-auto">Please confirm you're not a bot to visit the official Norvinsk Government Website.</p>
+        <a href="./norvinsk.gov.ru/index.html" class="verify-button inline-block">I'm Not a Bot</a>
+    </div>
+    <div class="notification">
+        <a href="./msg-secure.tangogolfmessaging.netinternalapiv3direct-access/index.html">TGM ACCESS</a>
+    </div>
+</body>
+</html>
