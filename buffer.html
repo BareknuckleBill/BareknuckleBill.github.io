@@ -1,0 +1,258 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Norvinsk Government - Processing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2a4d69 100%);
+            color: #fff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #top-text {
+            font-size: 28px;
+            font-weight: 400;
+            text-align: center;
+            max-width: 600px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            animation: fadeIn 1s ease-in;
+        }
+        #middle-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        #loader {
+            border: 10px solid #ffffff20;
+            border-top: 10px solid #00b7eb;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 30px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 0.9; }
+        }
+        #cmd-window {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 20px;
+            width: 400px;
+            height: 320px;
+            overflow-y: auto;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            display: none;
+            backdrop-filter: blur(5px);
+            background: rgba(26, 26, 26, 0.9);
+        }
+        #cmd-window p {
+            margin: 15px 0;
+            line-height: 1.4;
+        }
+        #login-form {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        #login-form p {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+        #login-form input {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            padding: 12px;
+            margin: 10px;
+            width: 300px;
+            background: #ffffff20;
+            border: 1px solid #00b7eb;
+            color: #fff;
+            border-radius: 5px;
+            outline: none;
+        }
+        #continue-button {
+            display: none;
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            background: #00b7eb;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        #continue-button:hover {
+            background: #008bb0;
+        }
+    </style>
+</head>
+<body>
+    <div id="top-text">We are experiencing technical difficulties. Please wait patiently. We apologize for the inconvenience.</div>
+    <div id="loader"></div>
+    <div id="middle-text"></div>
+    <div id="login-form">
+        <p>Authentication Token Valid</p>
+        <input type="text" id="username" placeholder="Username" readonly><br>
+        <input type="text" id="password" placeholder="Password" readonly><br>
+    </div>
+    <a id="continue-button" href="russian_federation_login.html">Go to records login</a>
+    <div id="cmd-window"></div>
+
+    <script>
+        const cmdWindow = document.getElementById('cmd-window');
+        const topText = document.getElementById('top-text');
+        const middleText = document.getElementById('middle-text');
+        const loader = document.getElementById('loader');
+        const loginForm = document.getElementById('login-form');
+        const continueButton = document.getElementById('continue-button');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+
+        function addCmdText(text, delay) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const p = document.createElement('p');
+                    p.textContent = text;
+                    cmdWindow.appendChild(p);
+                    cmdWindow.scrollTop = cmdWindow.scrollHeight;
+                    resolve();
+                }, delay * 1000); // Delay in seconds
+            });
+        }
+
+        function typeText(element, text, speed = 50) {
+            return new Promise(resolve => {
+                let i = 0;
+                element.value = '';
+                function type() {
+                    if (i < text.length) {
+                        element.value += text[i];
+                        i++;
+                        setTimeout(type, speed);
+                    } else {
+                        resolve();
+                    }
+                }
+                type();
+            });
+        }
+
+        async function runSequence() {
+            // Wait for 7 seconds
+            await new Promise(resolve => setTimeout(resolve, 7 * 1000));
+            // Show CMD window
+            loader.style.display = 'none';
+            cmdWindow.style.display = 'block';
+            // Add first text immediately
+            await addCmdText('!!! AuthTokenForge Console Window has been locked !!!', 0);
+            // Add subsequent texts with 2-second delay
+            await addCmdText('!!! The Background Process Monitor function of Authentification Token Forge.exe has identified a "Redirect/Scan" URL !!!', 2);
+            await addCmdText('!!! Hidden request node identified !!!', 2);
+            await addCmdText('!!! Running Injection Node Identification Injection Handler Script !!!', 2);
+            await addCmdText('!!! Script & Code Injected !!!', 2);
+            await addCmdText('!!! Spoofing MAC Address. !!!', 2);
+            await addCmdText('!!! Spoofing VPN & IP... !!!', 2);
+            await addCmdText('!!! VPN/IP & MAC Spoofed. !!!', 2);
+            await addCmdText('!!! Generating falsified Authentication token... !!!', 2);
+            // Standby loop with 8 repetitions and 2-second delay
+            for (let i = 0; i < 8; i++) {
+                await addCmdText('!!! Standby... !!!', 2);
+            }
+            await addCmdText('!!! Authentication Token falsified !!!!', 2);
+            await addCmdText('!!! Standby... !!!', 2);
+            await addCmdText('!!! Token accepted - You have been verified !!!', 0.5);
+            // Transition to login form
+            topText.style.display = 'none';
+            middleText.style.display = 'block';
+            middleText.textContent = 'Authentication Token Valid';
+            loginForm.style.display = 'block';
+            // CMD window continues
+            await addCmdText('!!! Searching for "LOGINDETAILS.txt" in directory... !!!', 2);
+            await addCmdText('!!! "LOGINDETAILS.txt" has been found. Inputting login & password... !!!', 2);
+            // Type login details
+            await typeText(usernameInput, 'CMD-HQ_BEAR-VYMPEL.06', 50);
+            await typeText(passwordInput, 'IronStep/BlueVector/2007', 50);
+            middleText.textContent = 'Login details accepted. Verifying...';
+            // Final CMD message
+            await addCmdText("You're in. See? I'm a man of my word. I hope you find whatever you're looking for in there. You paid a lotta bitcoin for this. I'll buy ya a drink from the Bahamas. Hahahaha! - CipherWraith", 2);
+            // Show continue button after 7 seconds
+            setTimeout(() => {
+                middleText.textContent = 'Login and password accepted.';
+                continueButton.style.display = 'inline-block';
+            }, 7 * 1000);
+        }
+
+        runSequence();
+    </script>
+</body>
+</html>

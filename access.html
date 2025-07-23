@@ -1,0 +1,554 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEAR INTERNAL ACCESS GATEWAY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .login-form input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 200px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3a3a3a;
+            color: #ffffff;
+        }
+        .login-form button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a4a4a;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .login-form button:hover {
+            background-color: #5a5a5a;
+        }
+        .login-form a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .login-form a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            color: #ff0000;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        .profile, .section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #3a3a3a;
+            border-radius: 5px;
+        }
+        .profile h2, .section h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #ffffff;
+            padding-bottom: 5px;
+        }
+        .profile p, .section p, .section ul, .section li {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        .section ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        .access-denied, .audio-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .access-denied p {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .audio-controls label {
+            margin-right: 10px;
+        }
+        .audio-controls input {
+            vertical-align: middle;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-form" id="loginForm">
+            <div class="header">
+                <h1>COMPILED PERSONNEL DOSSIER</h1>
+                <p>AUTH LEVEL: OVERSIGHT AUDIT</p>
+                <p>NODE: NORVINSK INTEL RELAY B17</p>
+            </div>
+            <input type="text" id="loginInput" placeholder="LOGIN" required>
+            <input type="password" id="passwordInput" placeholder="PASSWORD" required>
+            <button onclick="authenticate()">Submit</button>
+            <a href="#">Forgotten password</a>
+            <p class="error-message" id="errorMessage">Invalid login or password. Please try again.</p>
+        </div>
+
+        <div id="dossierContent" class="hidden">
+            <div class="profile">
+                <h2>I. Subject Profile</h2>
+                <p><strong>Name:</strong> [REDACTED], [REDACTED]</p>
+                <p><strong>Callsign:</strong> Scalpel</p>
+                <p><strong>Date of Birth:</strong> 15 January 1998</p>
+                <p><strong>Place of Birth:</strong> Khabarovsk, Russian Federation</p>
+                <p><strong>Nationality:</strong> Russian</p>
+                <p><strong>Former Affiliation:</strong> 14th Separate Guards Spetsnaz Brigade (GRU), 294th Separate Special Purpose Detachment</p>
+                <p><strong>Current Affiliation:</strong> BEAR Private Military Company (PMC)</p>
+                <p><strong>Deployment Zone:</strong> Norvinsk Region, Tarkov</p>
+                <p><strong>Role:</strong> Precision Sniper, Long-Range Interdiction, Strategic Isolation, Psychological Force Degradation</p>
+                <p><strong>Physical Profile:</strong> 183 cm, 82 kg, lean build optimized for endurance and stability in extreme conditions.</p>
+                <p><strong>Operational Status:</strong> Active, autonomous deployment under direct BEAR high-command oversight.</p>
+                <p><strong>Summary:</strong> Scalpel is a surgically precise sniper with unmatched long-range engagement capabilities. His operational methodology emphasizes disruption through fear, precision, and unpredictability. Detached, methodical, and unemotional, he is a strategic asset designed for high-value target (HVT) elimination and psychological warfare.</p>
+            </div>
+
+            <div class="section">
+                <h2>II. Developmental History and Overview</h2>
+                <h3>Summary</h3>
+                <p>Scalpel was born into a lineage of skilled marksmen and military professionals, inheriting a natural aptitude for precision shooting and tactical discipline. Raised in Khabarovsk, his early life was shaped by the loss of his parents—Vsevolod, a Spetsnaz Senior Sergeant, and Zoya, a military nurse—followed by his grandparents, Vikentiy and Tatiana, both accomplished WWII snipers and hunters. These losses, combined with his inherited skills and rigorous upbringing, forged a personality defined by emotional detachment, hyper-logical decision-making, and an unrelenting focus on efficiency. Enlisting in the Russian Armed Forces at 18, Scalpel’s exceptional marksmanship and cold precision led to his rapid selection into GRU Spetsnaz. His transfer to BEAR PMC in the Norvinsk Region cemented his reputation as a lone-wolf sniper, disrupting enemy operations through surgical eliminations and psychological terror.</p>
+                <h3>Comprehensive Report</h3>
+                <h4>Infancy (1998–2006)</h4>
+                <p>Scalpel was born to Vsevolod, a decorated Spetsnaz Senior Sergeant, and Zoya, a skilled nurse in the Russian military medical corps. Vsevolod was known for his professionalism and toughness, yet displayed a softer, caring side toward his family and subordinates (GRU Personnel File: “Vsevolod balanced ferocity with quiet compassion, mentoring younger soldiers”). Zoya was revered for her gentle yet resolute demeanor, earning respect for her skill and empathy in high-pressure medical environments (Medical Corps Report: “Zoya’s calm under fire saved countless lives”).</p>
+                <p>Scalpel’s early years were marked by exposure to his parents’ disciplined lifestyles. Vsevolod taught him basic firearm handling at age 4, noting his son’s uncanny focus and steady hands (Family Anecdote: “At 5, he could hold a sight picture longer than most recruits”). Zoya instilled precision and patience, involving him in minor medical tasks. These early influences laid the foundation for his marksmanship and emotional restraint.</p>
+                <h4>Childhood (2006–2008)</h4>
+                <p>At age 8, Scalpel’s mother died of leukemia, triggering an emotional withdrawal. School reports noted: “He is exceptionally bright but increasingly detached, showing minimal response to praise or criticism” (Khabarovsk School District, 2006). At age 10, Vsevolod was killed during a classified Spetsnaz operation in Chechnya. Orphaned, Scalpel was taken in by his grandparents, Vikentiy and Tatiana, both former WWII snipers and skilled hunters.</p>
+                <p>Vikentiy, a natural marksman from a poor background, and Tatiana, a highly intelligent markswoman from an upper-middle-class family, met during sniper training in 1942. Their wartime romance, culminating in a private marriage under a sympathetic officer’s approval, was a testament to their resilience (GRU Archive: “Vikentiy and Tatiana’s partnership was as lethal as it was devoted”). After the war, they taught marksmanship and survival skills, passing these traditions to Scalpel.</p>
+                <p>Living with his grandparents, Scalpel honed his marksmanship, tracking, and concealment skills. Vikentiy noted: “The boy doesn’t shoot for sport—he calculates” (Personal Journal, 2008). Tatiana observed his growing detachment: “He loves us, but it’s buried deep. The rifle is his voice” (Letter to Wartime Comrade, 2009). School reports highlighted his isolation: “He excels in mathematics and physics but avoids social interaction” (Khabarovsk School, 2010). His grandparents channeled his grief into disciplined training, fostering the traits that would define Scalpel.</p>
+                <h4>Teenage Years (2008–2016)</h4>
+                <p>Scalpel’s teenage years saw further emotional hardening as his grandparents’ health declined. Vikentiy’s heart condition and Tatiana’s respiratory issues limited their mobility, leaving Scalpel to care for them while intensifying his training. He mastered advanced stalking and camouflage, often spending days in the taiga practicing long-range shots. A local hunting guide remarked: “At 15, he could track a deer through a storm and hit a target at 800 meters without a scope. His assessment was instantaneous—nanoseconds to prone, align, pause, and fire, seizing the optimal tactical advantage” (Khabarovsk Hunting Club Log, 2013).</p>
+                <p>His personality became increasingly utilitarian, with peers noting his lack of emotional engagement: “He doesn’t laugh or argue—he just watches and acts” (Classmate Interview, 2014). The deaths of Vikentiy and Tatiana in 2016, shortly after Scalpel turned 18, severed his last emotional ties. A wartime comrade of Vikentiy recalled: “He stood at their graves without a tear, like he was solving an equation” (Interview, 2016).</p>
+                <h4>Early Military Career (2016–2018)</h4>
+                <p>Scalpel enlisted in the Russian Armed Forces at 18, immediately distinguishing himself in marksmanship trials. During basic training, he scored a perfect 300/300 on the 600-meter qualification range, prompting his instructor to note: “His precision is unnatural—his eyes don’t flicker, his hands don’t shake” (Operational Review, 2016). When informed of his grandparents’ deaths during a training exercise, Scalpel’s response was chilling: “Understood. Permission to resume firing?” His commanding officer later wrote: “For a brief moment, I saw in his eyes whatever humanity, emotion, something that kept him human. It appeared for a split second and was snuffed out just as quickly. I saw the last part his parents and grandparents knew existed; I watched it die. All I saw before me was what he is today” (CO Debrief, 2016).</p>
+                <p>His nickname “Scalpel” emerged informally among peers after a 1200-meter training shot through a simulated armored viewport. A squadmate quipped: “That wasn’t a bullet—it was surgery” (Barracks Log, 2017). The name spread as his kills in training exercises demonstrated surgical precision, earning grudging respect despite his aloof demeanor.</p>
+                <h4>Spetsnaz Service (2018–2020)</h4>
+                <p>Selected for GRU Spetsnaz at 20, Scalpel excelled in the 294th Separate Special Purpose Detachment. His nickname, initially mocked by peers for his coldness, was validated during a counter-terror operation in Dagestan. He eliminated a high-value target at 1400 meters through dense fog, prompting a squadmate to remark: “He doesn’t miss. He doesn’t blink. He doesn’t care. He just operates. Everything’s an equation to him. A problem to solve. He calculates and just fucking operates. I’ve never seen him falter or hesitate. Precise, exacting, and surgical. He’s fucking cold. He’s called ‘Scalpel’ because, like the cold, hard, metal tool, he makes an exact and precise incision while someone’s on the table. Except, he’s making that shot none of us, or anyone I’ve heard of, could ever do. That man facilitates the complete success of any operation he’s in” (Recorded Conversation, GRU Officers, 2018). The name became official, with even detractors acknowledging his lethality.</p>
+                <p>Scalpel’s detachment drew complaints: “He operates like we’re variables, not people. I hope to God I’m not a fucking variable that leads to a bad result. Christ” (Peer Review, 2019). Yet, his flawless mission record silenced critics.</p>
+                <h4>BEAR PMC Transfer (2020–Present)</h4>
+                <p>In 2020, Scalpel was covertly reassigned to BEAR PMC to counter USEC and TerraGroup activities in the Norvinsk Region. No official transfer record exists, suggesting high-level GRU involvement. Operating with near-total autonomy, Scalpel has become a legend in Tarkov, paralyzing enemy operations through surgical eliminations. Intercepted USEC chatter reflects fear: “If Scalpel’s out there, you don’t move” (Intercept 947-B, 2025).</p>
+            </div>
+
+            <div class="section">
+                <h2>III. GRU Background & Transfer Notes</h2>
+                <p><strong>SOURCE:</strong> GRU Special Purpose Archives | BEAR Internal Memo</p>
+                <p>Scalpel enlisted in 2016, quickly flagged for his marksmanship and emotional detachment. Operational reviews noted: “Scalpel processes combat like a ballistic computer—zero emotional variance” (GRU Instructor Report, 2016). By 2018, he was selected for Spetsnaz, serving in the 294th Detachment, specializing in long-range interdiction. His transfer to BEAR in 2020 was unannounced, likely to counter foreign PMC activity in Tarkov.</p>
+                <p><strong>Anecdote:</strong> During a Spetsnaz training exercise, Scalpel maintained a prone position for 14 hours in -10°C conditions to hit a 1300-meter target through sleet. His instructor remarked: “He didn’t shiver. He didn’t complain. He just waited for the shot” (GRU Log, 2018).</p>
+            </div>
+
+            <div class="section">
+                <h2>IV. Callsign Origin - "Scalpel"</h2>
+                <p><strong>SOURCE:</strong> GRU Embedded Operator Logs | BEAR Internal Memo 7.19</p>
+                <p>The callsign “Scalpel” originated during a 2018 GRU overwatch mission in Chechnya. Scalpel executed a 1712-meter shot through a moving convoy’s driver-side viewport, severing the target’s spine without harming the passenger. A stunned squadmate muttered: “He didn’t shoot—he cut. That was a scalpel” (Field Log, 2018). Another added: “It’s like a machine pulled the trigger, not a man” (Debrief Transcript). The name spread rapidly, cemented by similar feats. An infantry officer’s shaken report sealed its permanence: “He’s not human. If you’re in his scope, you’re already dead” (Secure Comm, 2018).</p>
+            </div>
+
+            <div class="section">
+                <h2>V. Combat Doctrine</h2>
+                <p><strong>Engagement Range:</strong> 900–2000 meters (Average)</p>
+                <p><strong>Tactical Methodology:</strong></p>
+                <ul>
+                    <li><strong>Observe → Evaluate → Act → Re-evaluate → Disappear:</strong> Scalpel conducts exhaustive reconnaissance, using terrain, weather, and enemy behavior to optimize shots. He acts only when conditions ensure success, re-evaluates to confirm no immediate threats, and disappears only when continued engagement risks detection. This methodical cycle maximizes disruption while minimizing exposure.</li>
+                    <li><strong>Target Selection:</strong> Prioritizes command, logistics, or overwatch personnel to maximize disruption.</li>
+                    <li><strong>Execution:</strong> Single, surgical shots to eliminate HVTs, followed by immediate repositioning or continued observation if safe.</li>
+                    <li><strong>Psychological Impact:</strong> Leverages fear and unpredictability to erode enemy morale and cohesion.</li>
+                    <li><strong>Stealth:</strong> Uses suppressors, terrain, and timing to remain undetectable.</li>
+                </ul>
+                <p><strong>Operational Philosophy:</strong> Scalpel views combat as a mathematical equation, with variables (targets, conditions, equipment) weighted by utility. His approach is calculated to cause maximum disruption with minimal exposure, maintaining position if tactically viable to continue engagements without detection.</p>
+                <p><strong>Anecdote:</strong> During a Tarkov operation, Scalpel held a position for 19 hours to eliminate a USEC logistics officer, waiting for a 3-second wind lull. The shot halted a supply convoy for 36 hours (BEAR Debrief, 2024).</p>
+                <h3>Weapon Systems</h3>
+                <p>Scalpel’s arsenal is tailored for specific roles, with each rifle customized for precision, reliability, and efficiency. All share a Recknagel 30mm sight mount, March Tactical 3-24x42 FFP scope, and Raptar laser rangefinder for consistency in long-range ballistic calculations. Triggers are upgraded to enhance precision:</p>
+                <ul>
+                    <li><strong>Trigger Philosophy:</strong>
+                        <ul>
+                            <li><strong>Crisp Break:</strong> A glass-rod break with zero creep ensures surgical precision, matching his detached methodology.</li>
+                            <li><strong>Minimal Overtravel:</strong> Near-zero overtravel maintains stability during shots.</li>
+                            <li><strong>Short, Positive Reset:</strong> Tactile, audible reset supports rapid follow-up shots for multiple engagements.</li>
+                            <li><strong>Durability:</strong> Sealed, corrosion-resistant triggers (e.g., TriggerTech, Geissele) withstand Tarkov’s harsh conditions.</li>
+                            <li><strong>Adjustability:</strong> Scalpel tunes pull weights (1.8–2.2 pounds) based on mission needs (lighter for long-range, heavier for CQB).</li>
+                            <li><strong>Lone Wolf Efficiency:</strong> Low-maintenance triggers allow Scalpel to focus on stalking rather than gear upkeep.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h4>1. Accuracy International AXMC (.338 Lapua Magnum) – Primary</h4>
+                <p><strong>Description:</strong> The AXMC is a modular bolt-action sniper rifle designed for extreme-range engagements. Chambered in .338 Lapua Magnum, it delivers sub-MOA accuracy at ranges exceeding 1500 meters, with exceptional penetration against armored targets. Its chassis system allows rapid reconfiguration.</p>
+                <p><strong>History:</strong> Developed by Accuracy International, the AXMC evolved from the AW series, adopted by elite units for reliability in harsh conditions. Scalpel selected it for its ballistic superiority and modularity.</p>
+                <p><strong>Intended Use:</strong> Long-range HVT elimination (1200–1800 meters – Average marksman) in open terrain or urban environments with complex variables (e.g., wind, thermal distortion).</p>
+                <p><strong>Scalpel’s Modifications:</strong></p>
+                <ul>
+                    <li><strong>Barrel:</strong> Free-floating, match-grade 27-inch barrel with 1:9.35 twist for .338 Lapua stabilization.</li>
+                    <li><strong>Stock:</strong> Adjustable cheek riser and length of pull for ergonomic stability.</li>
+                    <li><strong>Muzzle Device:</strong> Thor Multicalibre suppressor reduces flash and sound by 30 dB, minimizing detection.</li>
+                    <li><strong>Trigger:</strong> TriggerTech Special, tuned to 1.8–2.2 pounds for crisp, repeatable shots.</li>
+                    <li><strong>Optics:</strong> Recknagel 30mm mount with March Tactical scope and Raptar rangefinder.</li>
+                    <li><strong>Bipod:</strong> Harris HBRMS with cant adjustment for uneven terrain.</li>
+                    <li><strong>Coating:</strong> Cerakote in flat dark earth for environmental camouflage.</li>
+                </ul>
+                <p><strong>Rationale:</strong> The AXMC’s power and range make it ideal for Scalpel’s primary role: eliminating HVTs at extreme distances with single shots. Its weight (6.8 kg) is a trade-off for unmatched ballistic performance.</p>
+                <h4>2. DVL-10 Saboteur (7.62x51mm NATO) – Alternative Primary</h4>
+                <p><strong>Description:</strong> A lightweight, suppressed bolt-action rifle designed by LOBAEV Arms for covert operations. Its compact design and subsonic ammunition prioritize stealth.</p>
+                <p><strong>History:</strong> Developed for Russian special forces, the DVL-10 excels in silent, medium-range engagements. Scalpel chose it for urban areas, dense, or obstructed terrain.</p>
+                <p><strong>Intended Use:</strong> Covert eliminations at 400–1000 meters in confined or obstructed environments.</p>
+                <p><strong>Scalpel’s Modifications:</strong></p>
+                <ul>
+                    <li><strong>Barrel:</strong> 20-inch, integrally suppressed to eliminate flash and reduce sound to 26 dB.</li>
+                    <li><strong>Stock:</strong> Folding, adjustable for compact carry or rapid deployment.</li>
+                    <li><strong>Trigger:</strong> Geissele SSA, tuned to 1.8 pounds for minimal disturbance.</li>
+                    <li><strong>Optics:</strong> Recknagel 30mm mount with March Tactical scope and Raptar rangefinder.</li>
+                    <li><strong>Ammunition:</strong> Handloaded 7.62x51mm subsonic rounds with 200-grain projectiles.</li>
+                    <li><strong>Rail System:</strong> Picatinny extensions for NVG/thermal compatibility.</li>
+                </ul>
+                <p><strong>Rationale:</strong> The DVL-10’s suppressed design and lighter weight (4.2 kg) suit missions requiring rapid repositioning or engagements in confined spaces.</p>
+                <h4>3. SV-98 (7.62x54mmR) – Alternative Primary</h4>
+                <p><strong>Description:</strong> A Russian bolt-action sniper rifle designed for cost-effective precision. Lighter and shorter than the AXMC, it sacrifices range for mobility.</p>
+                <p><strong>History:</strong> Adopted by Russian forces as a reliable sniper platform, the SV-98 is valued for simplicity. Scalpel uses it for engagements under 1000 meters where mobility is critical.</p>
+                <p><strong>Intended Use:</strong> Medium-range (500–900 meters) engagements in dynamic environments, such as urban patrols or rapid-response scenarios.</p>
+                <p><strong>Scalpel’s Modifications:</strong></p>
+                <ul>
+                    <li><strong>Barrel:</strong> Upgraded 22-inch match-grade barrel with 1:9.5 twist for 7.62x54mmR stability.</li>
+                    <li><strong>Stock:</strong> Lightweight polymer with adjustable comb.</li>
+                    <li><strong>Muzzle Device:</strong> Thor Multicalibre suppressor reduces sound by 28 dB.</li>
+                    <li><strong>Trigger:</strong> Geissele SSA, tuned to 2.0 pounds for minimal take-up.</li>
+                    <li><strong>Optics:</strong> Recknagel 30mm mount with March Tactical scope and Raptar rangefinder.</li>
+                    <li><strong>Bipod:</strong> Lightweight Atlas V8 for rapid setup.</li>
+                    <li><strong>Weight Reduction:</strong> Titanium components reduce weight to 4.8 kg.</li>
+                </ul>
+                <p><strong>Rationale:</strong> The SV-98’s lighter weight and shorter barrel make it ideal for dynamic, closer-range engagements. Its 7.62x54mmR ammunition is readily available in Tarkov, reducing logistical strain.</p>
+                <h4>4. USP .45 (Suppressed) – Secondary</h4>
+                <p><strong>Description:</strong> A semi-automatic pistol chambered in .45 ACP, designed by Heckler & Koch for reliability and stopping power.</p>
+                <p><strong>History:</strong> Widely used by special forces, the USP .45 is Scalpel’s backup for close-quarters defense.</p>
+                <p><strong>Intended Use:</strong> Emergency self-defense or eliminations at 0–50 meters.</p>
+                <p><strong>Scalpel’s Modifications:</strong></p>
+                <ul>
+                    <li><strong>Suppressor:</strong> Osprey 45 silencer for minimal sound signature.</li>
+                    <li><strong>Sights:</strong> Trijicon RMR red dot for rapid target acquisition.</li>
+                    <li><strong>Trigger:</strong> Match-grade, tuned to 1.8 pounds.</li>
+                    <li><strong>Grips:</strong> Custom stippling for control in wet conditions.</li>
+                    <li><strong>Ammunition:</strong> Supersonic .45 ACP AP rounds for maximum damage and lethality, drawn only in unavoidable close encounters.</li>
+                </ul>
+                <p><strong>Rationale:</strong> The USP .45 provides stopping power when Scalpel is forced into close quarters by unforeseen threats, prioritizing lethality over stealth.</p>
+                <h4>5. HK MP7A2 (4.6x30mm) – Close-Quarters Weapon</h4>
+                <p><strong>Specifications:</strong> 2.1kg loaded (40-round magazine), 25.1 inches (stock extended), 16.3 inches (stock collapsed), 950 RPM, effective up to 200m.</p>
+                <p><strong>Customizations:</strong></p>
+                <ul>
+                    <li>40-round magazines loaded with 4.6x30mm FMJ.</li>
+                    <li>Trijicon SRS-02 Reflex Sight (1.75 MOA dot, solar/AA battery).</li>
+                    <li>Zenit Klesch-2P Flashlight with Laser.</li>
+                    <li>Strike Industries Cobra Tactical Foregrip.</li>
+                </ul>
+                <p><strong>Notes:</strong> Compact, low-recoil PDW for close-quarters engagements, designed to penetrate body armor. Delivers rapid, precise fire when Scalpel is forced into urban combat.</p>
+                <h4>Additional Equipment</h4>
+                <ul>
+                    <li><strong>Rucksack:</strong> Trooper 35 Rucksack. Medium-size backpack for military/tactical use, carries mission-critical supplies (ammunition, optics, food, medical kits). Durable and low-profile, ideal for extended overwatch in Tarkov’s rugged terrain.</li>
+                    <li><strong>Helmet:</strong> MTEK FLUX Ballistic Helmet (Olive Drab). Level IV armor, protects top and nape, compatible with mounts for imaging devices. Stops pistol rounds, limited against rifle rounds.</li>
+                    <li><strong>Helmet-Mounted Devices:</strong>
+                        <ul>
+                            <li>L3Harris GPNVG-18 Night Vision Goggles: Four-tube panoramic NVGs, 97-degree FOV, enhances situational awareness in low-light urban and rural AOs.</li>
+                            <li>Peltor ComTac VI Headset (Coyote Brown): Advanced environmental listening with NIB feature for proximity communication. Enhances detection of footsteps/other noise and speech while providing hearing protection.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Melee:</strong> 6Kh5 Bayonet (AK-74 compatible, sheathed at side).</li>
+                    <li><strong>Grenades:</strong> 3x Model 7290 Flash Bang Grenades. 175 dB explosion, blinding flash. Causes tinnitus and disorientation.</li>
+                    <li><strong>Optics:</strong> Thermal/NVG attachments for low-visibility conditions.</li>
+                    <li><strong>Rangefinder:</strong> Raptar integrates with ballistic software for real-time corrections.</li>
+                    <li><strong>Ballistic Charts:</strong> Custom-generated per engagement zone, factoring ammunition, humidity, and barometric pressure.</li>
+                    <li><strong>Munitions:</strong> Handloaded .338 Lapua Magnum AP and subsonic rounds, 7.62x51mm subsonic, and 7.62x54mmR AP rounds.</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>VI. Notable Missions by Career Phase</h2>
+                <h3>1. Early Military Career (2017) – Operation “Iron Veil”</h4>
+                <p><strong>Date:</strong> 12 March 2017</p>
+                <p><strong>Location:</strong> Grozny, Chechnya</p>
+                <p><strong>Summary:</strong> Neutralized an insurgent sniper at 1300 meters during a nighttime urban operation.</p>
+                <p><strong>Details:</strong> Scalpel was selected for a counter-sniper team. Positioned on a rooftop under heavy rain, he maintained a prone position for 16 hours, pausing only briefly for water, and identified the target through thermal distortion. Using a T-5000 (7.62x54mmR), a Spetsnaz-standard rifle, he executed a shot through a 4 cm gap in concrete, preventing an ambush on a Russian patrol.</p>
+                <p><strong>Tactical Analysis:</strong> Adjusted for 12 kph crosswind and 8° elevation with basic optics, demonstrating early precision.</p>
+                <p><strong>Debrief Comment:</strong> “His shot was textbook, but his calm was unsettling. He didn’t acknowledge the team’s relief—just packed up” (Sgt. Ivanov, 2017).</p>
+                <h3>2. Spetsnaz Service (2019) – Operation “Desert Fang”</h3>
+                <p><strong>Date:</strong> 19 August 2019</p>
+                <p><strong>Location:</strong> Idlib, Syria</p>
+                <p><strong>Summary:</strong> Eliminated an insurgent commander at 1550 meters, disrupting a planned offensive.</p>
+                <p><strong>Details:</strong> Scalpel maintained a prone position in 40°C heat for 16 hours, pausing only for water, using an AXMC with handloaded .338 Lapua Magnum rounds. The shot, taken through light sandstorm conditions, severed the target’s aorta, collapsing enemy command structure.</p>
+                <p><strong>Tactical Analysis:</strong> Corrected for thermal mirage and 15 kph gusts using pre-calculated ballistic data.</p>
+                <p><strong>Debrief Comment:</strong> “He didn’t celebrate the kill. He just logged the wind speed and moved out” (Capt. Volkov, 2019).</p>
+                <h3>3. BEAR PMC (2024) – Operation “Ghost Tide”</h3>
+                <p><strong>Date:</strong> 15 June 2024</p>
+                <p><strong>Location:</strong> Tarkov Port, Norvinsk Region</p>
+                <p><strong>Summary:</strong> Neutralized a USEC defector at 1450 meters from a water tower.</p>
+                <p><strong>Details:</strong> Scalpel used a suppressed AXMC, firing through coastal winds under active enemy overwatch. The shot, taken with an API round, penetrated Level III ballistic glass, causing a leadership crisis among USEC forces. Hacked comms reported no muzzle flash, and a subsequent search found no trace of his position, as if he was never there.</p>
+                <p><strong>Tactical Analysis:</strong> Pre-mission recon identified glass type; ballistic software adjusted for 18 kph crosswind and 9° elevation.</p>
+                <p><strong>Debrief Comment:</strong> “The enemy thought they were safe behind glass. Scalpel proved them wrong” (Maj. Gorbayebv, 2024).</p>
+            </div>
+
+            <div class="section">
+                <h2>VII. Field Behaviour Logs</h2>
+                <p><strong>SOURCE:</strong> Drone Telemetry | Recovered Optics | Acoustic Triangulation | Allied Debriefs</p>
+                <p><strong>Filed By:</strong> Staff Sgt. Malenkov, Tactical Debrief Unit</p>
+                <ul>
+                    <li><strong>Date:</strong> 07/04/2025 – 0300Z<br>
+                        <strong>AO:</strong> North Tarkov – Ridge 11<br>
+                        <strong>Summary:</strong> Rogue lieutenant eliminated at 1370 meters in fog-light conditions.<br>
+                        <strong>Notes:</strong> Shot executed through thermal mirage, requiring advanced rangefinding. No exit wound, indicating precise spinal destruction.<br>
+                        <strong>Comment:</strong> “He died exhaling. Scalpel planned it that way” (Malenkov).</li>
+                    <li><strong>Date:</strong> 07/06/2025 – 2200Z<br>
+                        <strong>AO:</strong> Factory Zone B6<br>
+                        <strong>Summary:</strong> Sniper neutralized through a 5 cm window at 1150 meters.<br>
+                        <strong>Notes:</strong> Scalpel maintained a prone position in extreme rain, cold, and wind for 4 hours in mined terrain, adjusting for layered glass and steel. Waited 23 minutes for a wind lull.<br>
+                        <strong>Comment:</strong> “Perfect hit, zero overkill” (Drone Operator).</li>
+                    <li><strong>Date:</strong> 07/09/2025 – 1900Z<br>
+                        <strong>AO:</strong> Interchange Outskirts<br>
+                        <strong>Summary:</strong> USEC radio operator killed at 1025 meters.<br>
+                        <strong>Notes:</strong> Crosswind of 16 kph navigated with custom ballistic chart and RAPTAR rangefinder. GPNVG-18 NVGs aided target acquisition in low light. Shot placed behind ear, no acoustic trace. Convoy halted for 6 hours.<br>
+                        <strong>Comment:</strong> “USEC didn’t know what hit them” (Sgt. Malenkov).</li>
+                    <li><strong>Date:</strong> 07/15/2025 – 1900Z<br>
+                        <strong>AO:</strong> Tarkov Port<br>
+                        <strong>Summary:</strong> Senior defector killed at 1450 meters, no muzzle flash detected.<br>
+                        <strong>Notes:</strong> Fired from a water tower under enemy overwatch. Thor Multicalibre suppressor masked flash; coastal wind zeroed via Raptar. Hacked comms confirmed no flash, and enemy searches found no trace of Scalpel’s position.<br>
+                        <strong>Comment:</strong> “USEC calls him a ghost sniper now” (Intel Analyst).</li>
+                    <li><strong>Date:</strong> 07/20/2025 – 2200Z<br>
+                        <strong>AO:</strong> Ridge 23, Northern Hills<br>
+                        <strong>Summary:</strong> USEC recon sniper eliminated at 1725 meters.<br>
+                        <strong>Notes:</strong> Longest confirmed kill. 8-hour meticulous and dangerous stalk through varied terrain, supported by Trooper 35 Rucksack for supplies. Shot adjusted for elevation and dusk shimmer using March Tactical scope. USEC recon teams ceased operations in AO for 72 hours.<br>
+                        <strong>Comment:</strong> “Sub-MOA accuracy in impossible conditions” (Sgt. Malenkov).</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>VIII. Notable Confirmed Kills</h2>
+                <ul>
+                    <li><strong>Codename:</strong> Monolith<br>
+                        <strong>Identity:</strong> Major Arseniy Petrov – Rogue BEAR Commander<br>
+                        <strong>Date:</strong> 06/18/2025<br>
+                        <strong>Range:</strong> 1510 meters<br>
+                        <strong>Location:</strong> Tarkov Hydrostation Ruins<br>
+                        <strong>Details:</strong> 11-hour prone wait in fog and rain. Shot through overgrowth, collapsing rogue BEAR leadership for 9 days.</li>
+                    <li><strong>Codename:</strong> Courier Zero<br>
+                        <strong>Identity:</strong> Lt. Pavel Denin – Rogue BEAR Officer<br>
+                        <strong>Date:</strong> 07/02/2025<br>
+                        <strong>Range:</strong> 980 meters<br>
+                        <strong>Location:</strong> Tarkov Rail Line<br>
+                        <strong>Details:</strong> Incendiary round destroyed documents, causing 72-hour supply disruption.</li>
+                    <li><strong>Codename:</strong> Silent Echo<br>
+                        <strong>Identity:</strong> Captain Marcus Lang – USEC Recon Sniper<br>
+                        <strong>Date:</strong> 07/20/2025<br>
+                        <strong>Range:</strong> 1725 meters<br>
+                        <strong>Location:</strong> Ridge 23, Tarkov Northern Hills<br>
+                        <strong>Details:</strong> Longest confirmed kill, executed after an 8-hour meticulous and dangerous stalk at distance through varied terrain. Sub-MOA precision under dusk shimmer. Expanded BEAR perimeter by 5 km².</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>IX. Intercepted USEC Comm Traffic</h2>
+                <p><strong>Source:</strong> BEAR Signal Intelligence | File ID: 947-B</p>
+                <p>“Avoid Shoreline. That sniper’s still out there.”</p>
+                <p>“The one who hits through smoke and never misses?”</p>
+                <p>“Yeah. Command says he’s a myth. Tell that to Riley’s corpse.”</p>
+            </div>
+
+            <div class="section">
+                <h2>X. Psychological Evaluation</h2>
+                <p><strong>Conducted By:</strong> Dr. Natalia Mirova, BEAR Clinical Evaluation Division</p>
+                <p><strong>Status:</strong> Active Deployment Approved</p>
+                <p><strong>Profile Classification:</strong> High-Functioning Strategic Asset</p>
+                <h3>Summary</h3>
+                <p>Scalpel exhibits sociopathic traits, including total emotional detachment, hyper-logical processing, and utilitarian decision-making. These traits, while socially isolating, are adaptive for his role, enabling unparalleled precision and efficiency. He views himself and others as variables in a tactical equation, prioritizing outcomes over relationships. His emotional suppression is absolute, with no observable trauma, guilt, or pleasure in killing. Even his circadian rhythm is optimized, never exceeding the minimum needed for peak performance, enforced by precise alarms to switch on instantly. Scalpel’s silence and cold demeanor amplify his psychological impact on both allies and enemies, making him a force multiplier.</p>
+                <h3>Detailed Analysis</h3>
+                <ul>
+                    <li><strong>Compartmentalization:</strong> Scalpel eliminates emotional variables (ego, pride, empathy) as inefficiencies. He processes decisions through a numerical hierarchy: utility, probability, response threshold, and consequence.</li>
+                    <li><strong>Moral Reasoning:</strong> Purely utilitarian. Targets are assessed by their impact on mission success, not moral or emotional weight.</li>
+                    <li><strong>Impulse Control:</strong> Exceptional. Scalpel displays no hesitation or emotional interference, even under extreme stress.</li>
+                    <li><strong>Social Interaction:</strong> Minimal, as Scalpel is constantly assessing and adapting variables in his tactical equation, adding or subtracting based on real-time observations. His alertness and awareness drive his silence, not disinterest.</li>
+                    <li><strong>Trauma Response:</strong> Absent. Scalpel views past losses as “dead weight” and discards them to maintain efficiency.</li>
+                    <li><strong>Anecdote:</strong> Asked about killing a child in a hypothetical scenario, Scalpel responded: “If it’s critical, no hesitation. If not, find another vector. Unnecessary kills are noise” (Transcript, 07/21/2025).</li>
+                    <li><strong>Squadmate Observation:</strong> “He doesn’t hate the enemy. He doesn’t care about us either. To him, we’re all just another MilDot to aim off by in his scope” (Sgt. Kuznetsov, 2024).</li>
+                </ul>
+                <p><strong>Recommendation:</strong> Continue autonomous deployment. Monitor for cognitive degradation via performance metrics, not emotional cues. Scalpel’s psychological profile is a strategic asset, not a liability.</p>
+                <h3>Excerpted Interview Transcript (Secure Session, 07/21, 1015Z)</h3>
+                <ul>
+                    <li><strong>Q:</strong> What do you see when the target goes down? What do you feel when you’ve felt the recoil in your shoulder and know the round you fired killed that person?<br>
+                        <strong>A:</strong> “Distance. Wind correction. Humidity. Emotionally, I feel nothing. I move onto the next target.”</li>
+                    <li><strong>Q:</strong> What would you do if your own squadmate compromised the mission?<br>
+                        <strong>A:</strong> “Break from contact. Reposition. Reassess. Continue with the mission. Following completion, remove the cause of the compromise prior to the following Operation.”</li>
+                    <li><strong>Q:</strong> Do you care if your methods disturb others on your team, or further up the chain of command?<br>
+                        <strong>A:</strong> “If they’re disturbed, they shouldn’t be here. That’s their fault or a training failure. I don’t care which one it is. — I don’t care about what Command thinks either. Command doesn’t care either — because I produce outcomes. That is all that matters. The means justify the ends when all variables are accounted for and factored correctly into the equation.”</li>
+                    <li><strong>Q:</strong> Do you believe you’re better than those you operate with?<br>
+                        <strong>A:</strong> “Belief is irrelevant. The only thing that matters is if they slow me down. That changes the equation and influences the outcome.”</li>
+                    <li><strong>Q:</strong> If a child stood between you and your mission objective — would you hesitate?<br>
+                        <strong>A:</strong> “Define the objective. If it’s critical, no. If it’s not, find another vector. Killing without gain is unnecessary noise.”</li>
+                    <li><strong>Q:</strong> How do you handle grief or trauma from past engagements?<br>
+                        <strong>A:</strong> “I don’t carry it. It’s dead weight. Weight slows you down. Slows your decisions, and your reaction time. — That is inefficiency. — I won’t tolerate it.”</li>
+                    <li><strong>Q:</strong> What’s your opinion of leadership within BEAR?<br>
+                        <strong>A:</strong> “Opinions are inefficient. Only information matters. If their input has value, I use it. If not, I disregard it. — I improvise, utilize the most efficient method or means at my disposal, and produce a better outcome.”</li>
+                    <li><strong>Q:</strong> You never ask for, or seek any sort of recognition for your work — irrespective of the physical and technical difficulties you’ve overcome to achieve it. Why?<br>
+                        <strong>A:</strong> “The outcome is the only real matter of importance. Recognition never improves an outcome. Recognition - Is pride. Ego. Emotion. All of which are variables of inefficiency. I eliminate them from the equation.”</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>XI. Command Evaluation & Recommendations</h2>
+                <p><strong>Commanding Officer:</strong> Lt. Col. Mikhail Raskolnikov</p>
+                <p><strong>Notes:</strong></p>
+                <ul>
+                    <li>Scalpel’s operational success rate is 100%, with 118+ confirmed precision kills.</li>
+                    <li>His presence in an AO reduces enemy morale, with intercepted chatter indicating paralysis and fear.</li>
+                    <li>Complaints about his demeanor are irrelevant given his results.</li>
+                    <li>His legend as “Scalpel” is a self-sustaining psychological weapon.</li>
+                </ul>
+                <p><strong>Recommendations:</strong></p>
+                <ul>
+                    <li>Deploy exclusively for HVT eliminations and psychological operations.</li>
+                    <li>Limit routine taskings to preserve strategic impact.</li>
+                    <li>Conduct monthly psych evaluations via performance data, not social integration.</li>
+                    <li>Exploit enemy fear through disinformation campaigns.</li>
+                    <li>Ensure strict deconfliction to prevent friendly fire incidents.</li>
+                </ul>
+                <p><strong>Comment:</strong> “Scalpel doesn’t win battles—he ends them before they start” (Raskolnikov, 2025).</p>
+                <p><strong>Commanding Officer Field Notes:</strong></p>
+                <p><strong>Maj. Gorbayebv:</strong> “You don’t brief ‘Scalpel’. You point him at a problem, and he solves it without noise.”</p>
+                <p>Despite complaints of coldness and unsettling demeanor, Scalpel’s 0% failure rate and 118+ confirmed kills outweigh concerns. Command rebuts psychological reports unless linked to performance degradation. Verdict: Continue deployment.</p>
+            </div>
+
+            <div class="section">
+                <h2>XII. Family Influence</h2>
+                <ul>
+                    <li><strong>Vsevolod (Father):</strong> Spetsnaz Senior Sergeant. His disciplined yet caring nature instilled early marksmanship and focus in Scalpel. His death at age 10 hardened Scalpel’s emotional barriers.</li>
+                    <li><strong>Zoya (Mother):</strong> Military nurse. Her precision and empathy shaped Scalpel’s methodical approach, though her death at age 8 triggered his initial withdrawal.</li>
+                    <li><strong>Vikentiy (Grandfather):</strong> WWII sniper and hunter. His survival skills and marksmanship training honed Scalpel’s technical prowess.</li>
+                    <li><strong>Tatiana (Grandmother):</strong> WWII sniper and markswoman. Her intelligence and discipline reinforced Scalpel’s hyper-logical mindset.</li>
+                </ul>
+                <p><strong>Impact:</strong> The family’s legacy of precision and resilience, combined with their successive losses, molded Scalpel into a detached, efficient operator. Their teachings provided the skills; their deaths forged the mindset.</p>
+            </div>
+
+            <div class="section">
+                <h2>XIII. Relations</h2>
+                <p><strong>Allies:</strong> BEAR Command, select GRU contacts</p>
+                <p><strong>Enemies:</strong> USEC, TerraGroup, Rogue PMCs, Cult Elements</p>
+                <p><strong>Neutral:</strong> Local Civilians, Non-Hostile Scavs</p>
+            </div>
+
+            <div class="access-denied">
+                <p>ACCESS DENIED: Contact BEAR Command for Password Reset</p>
+                <button onclick="window.close()">Close</button>
+            </div>
+
+            <div class="audio-controls">
+                <label for="volume">Volume:</label>
+                <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+                <button onclick="document.getElementById('background-audio').muted = !document.getElementById('background-audio').muted">Mute</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="background-audio" loop>
+        <source src="background.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        function authenticate() {
+            const login = document.getElementById('loginInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const loginForm = document.getElementById('loginForm');
+            const dossierContent = document.getElementById('dossierContent');
+
+            if (login === 'Telescope' && password === 'DeathByALeap#98') {
+                loginForm.style.display = 'none';
+                dossierContent.classList.remove('hidden');
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        const volumeControl = document.getElementById('volume');
+        const audio = document.getElementById('background-audio');
+        volumeControl.addEventListener('input', () => {
+            audio.volume = volumeControl.value;
+        });
+    </script>
+</body>
+</html>
