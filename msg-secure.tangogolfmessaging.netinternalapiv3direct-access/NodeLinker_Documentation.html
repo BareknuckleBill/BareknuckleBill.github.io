@@ -1,0 +1,137 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeLinker - Bypass/Breach Tool Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #222;
+        }
+        h1 {
+            border-bottom: 2px solid #222;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .warning {
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-left: 4px solid #ff3333;
+            margin: 10px 0;
+        }
+        .note {
+            background-color: #e6f3ff;
+            padding: 10px;
+            border-left: 4px solid #3366ff;
+            margin: 10px 0;
+        }
+        .code {
+            font-family: monospace;
+            background-color: #eee;
+            padding: 2px 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>'NodeLinker' - Bypass/Breach Tool</h1>
+    <h2>Notes — auth_token_forge_x64_rev2.exe</h2>
+    <p><strong>Project:</strong> Klyuchi_Proverka (formerly “Keys Verification”)</p>
+    <p><strong>Version:</strong> x64_rev2 (stable build)</p>
+    <p><strong>Author:</strong> CipherWraith</p>
+    <p><strong>Date:</strong> 2025-07-22</p>
+
+    <h2>Overview</h2>
+    <p>This is a modified fork of the government’s key verification tool for NodeLinker. The original program was obtained through a backdoor into their systems, along with a large number of authentication keys, over the course of a year.</p>
+    <p>The tool was designed to authenticate government computers and remotely access a login terminal. NodeLinker has a vulnerability where it stores an updated list of tokens in a hidden site. Each site has a sister site, and they can only interact with each other, providing a layer of security.</p>
+    <p>Accessing the end login terminal is extremely difficult due to complex security measures and monitoring of connected IPs. Prolonged penetration testing would require an impractical amount of resources, such as a botnet, without being detected.</p>
+    <p>Tokens on each site are updated monthly from NodeLinker’s main servers, operated by a shell company. These tokens are automatically downloaded to the user’s machine, granting different access points based on the user’s government role.</p>
+    <p>An exploit in the shell company’s system allowed the establishment of multiple backdoors, providing access to their servers. These backdoors reroute token distribution traffic through controlled systems, splitting and reformatting the files across botnets. Over a week, an updated token list is compiled and pushed to devices running this software, mimicking legitimate government access.</p>
+    <div class="warning">
+        <p><strong>Warning:</strong> Attempting to backtrace the download IP or breach the botnet will trigger severe consequences, including screen and keyboard lock, exposure of personal data, and potential implication in a high-profile hack. Do not attempt to reverse-engineer the file handling process.</p>
+    </div>
+
+    <h2>Key Features</h2>
+    <ul>
+        <li>Real-time forging of authentication tokens compatible with official secure node protocols.</li>
+        <li>Actively scans for instances of <span class="code">NodeLinker</span> code (official comms/security client) on servers for remote access.</li>
+        <li>Spoofs MAC Address and IP when accessing known <span class="code">NodeLinker</span> sites, using authorized regions designated in the code.</li>
+        <li>Performs a dictionary attack in under a minute using botnet resources. Failure to authenticate within this time may result in IP tracing.</li>
+        <li>Stealth mode masks process activity and falsifies logs, providing plausible deniability if the PC is inspected.</li>
+        <li>Multi-threaded 64-bit build optimized for persistence and low footprint.</li>
+        <li>Incorporates randomized entropy to reduce detection by AI-driven anomaly systems.</li>
+    </ul>
+
+    <h2>Usage Warnings</h2>
+    <ul>
+        <li>Prolonged use without network rotation may trigger high-level IDS alarms.</li>
+        <li>For full operational security (OPSEC), pair with VPN masking and MAC address cycling hardware kits (sold separately).</li>
+        <li>The author is not responsible for consequences if detected by BEAR countermeasures.</li>
+    </ul>
+
+    <h2>Development Notes</h2>
+    <ul>
+        <li>Rev2 patched key injection bugs causing desync errors under heavy load.</li>
+        <li>Upcoming updates will include an encrypted remote control channel and automated self-deletion trigger.</li>
+        <li>Work in progress on evasion techniques for emerging Tarkov backend heuristics.</li>
+    </ul>
+
+    <h2>Final Thoughts</h2>
+    <p>Keep the program running in the background. It will monitor for specified site addresses, spoof necessary credentials, and keep you under the radar when accessing redirected pages. This tool is a game-changer for bypassing NodeLinker security.</p>
+    <p><strong>— CipherWraith</strong></p>
+</body>
+</html>

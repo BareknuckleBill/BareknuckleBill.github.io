@@ -1,0 +1,166 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breach Data - USEC Leak</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #d1d5db;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .cli-window { 
+            background-color: #000; 
+            border: 2px solid #4b4b4b; 
+            font-family: 'Courier New', monospace; 
+            color: #00ff00; 
+            max-width: 600px; 
+            width: 90%; 
+        }
+        .cli-window p { 
+            margin: 0; 
+            line-height: 1.6; 
+        }
+        .cli-header { 
+            background-color: #333; 
+            padding: 6px; 
+            color: #fff; 
+            font-size: 14px; 
+            font-weight: bold; 
+        }
+        .cli-content { 
+            padding: 16px; 
+            border-top: 1px solid #4b4b4b; 
+        }
+        .section-border { 
+            border: 1px solid #4b4b4b; 
+        }
+        .section-title { 
+            color: #ff5555; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+        }
+        .data-field { 
+            margin-bottom: 4px; 
+        }
+        .data-label { 
+            color: #3b82f6; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center">
+    <div class="cli-window section-border">
+        <div class="cli-header">USEC Breach Data - Credentials & Personal Information</div>
+        <div class="cli-content">
+            <div class="mb-6">
+                <p class="section-title">Credentials</p>
+                <p class="data-field"><span class="data-label">Username:</span> Telescope</p>
+                <p class="data-field"><span class="data-label">Password:</span> DeathByALeap#98</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Message from SaintVulnerability</p>
+                <p>I hope you find what is written below, interesting; Gavin Rourke. :)</p>
+                <p class="mt-2">As for you USEC goons,</p>
+                <p>Thanks for the bitcoin. It’s a lovely little holiday away; for a very long time.</p>
+                <p class="mt-2">One last thing: It seems that ‘Ghost’ is very much real, and there are things; even monsters like you lot, are scared of.</p>
+                <p class="mt-2">— SaintVulnerability</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Personal Data Leak: Gavin Rourke (NullSec)</p>
+                <p class="data-field"><span class="data-label">Full Name:</span> Gavin Thomas Rourke</p>
+                <p class="data-field"><span class="data-label">Date of Birth:</span> 1984-03-14</p>
+                <p class="data-field"><span class="data-label">Place of Birth:</span> Seattle, Washington, USA</p>
+                <p class="data-field"><span class="data-label">Social Security Number:</span> 478-29-6513 (fictitious)</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Current Residence</p>
+                <p class="data-field">1245 Westlake Ave N, Apt 12B</p>
+                <p class="data-field">Seattle, WA 98109, USA</p>
+                <p class="data-field"><span class="data-label">Phone:</span> +1 (206) 555-4927</p>
+                <p class="data-field"><span class="data-label">Email:</span> g.t.rourke@outlook.com</p>
+                <p class="data-field"><span class="data-label">Alternate Email:</span> gavin.rourke1984@protonmail.com</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Employment</p>
+                <p class="data-field"><span class="data-label">Company:</span> USEC Private Military Company — Cyber Operations Division</p>
+                <p class="data-field"><span class="data-label">Headquarters:</span> 4250 Corporate Way, Bellevue, WA 98007, USA</p>
+                <p class="data-field"><span class="data-label">Work Phone:</span> +1 (425) 555-8831</p>
+                <p class="data-field"><span class="data-label">Work Email:</span> g.rourke@usec-cyber.com</p>
+                <p class="data-field"><span class="data-label">Position:</span> Senior Cyber Operator — Offensive Cyber Warfare Lead</p>
+                <p class="data-field"><span class="data-label">Employee ID:</span> USEC-CYB-0148</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Family</p>
+                <p class="data-field"><span class="data-label">Spouse:</span> Jennifer Claire Rourke (née Whitman)</p>
+                <p class="data-field"><span class="data-label">Spouse DOB:</span> 1986-07-29</p>
+                <p class="data-field"><span class="data-label">Spouse Place of Birth:</span> Portland, Oregon, USA</p>
+                <p class="data-field"><span class="data-label">Spouse Phone:</span> +1 (206) 555-7865</p>
+                <p class="data-field"><span class="data-label">Spouse Email:</span> j.whitman1986@gmail.com</p>
+                <p class="data-field"><span class="data-label">Children:</span></p>
+                <ul class="list-disc list-inside">
+                    <li>Emily Rose Rourke — DOB: 2012-11-15 — Attends West Seattle Elementary</li>
+                    <li>Noah James Rourke — DOB: 2015-05-23 — Attends West Seattle Elementary</li>
+                </ul>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Education</p>
+                <p class="data-field">University of Washington — B.S. Computer Science (2002–2006)</p>
+                <p class="data-field">Johns Hopkins University — M.S. Cybersecurity (2009–2011)</p>
+            </div>
+            <div class="mb-6">
+                <p class="section-title">Known Aliases</p>
+                <ul class="list-disc list-inside">
+                    <li>NullSec</li>
+                    <li>GT-Rourke</li>
+                    <li>VectorX1984</li>
+                </ul>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <a href="./darknet.html" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium">Back to Chat</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tango/Golf - Secure Messaging Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #d1d5db;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .blur-effect { filter: blur(4px); }
+        .no-select { user-select: none; }
+        .dropdown-content { display: none; }
+        .dropdown-content.active { display: block; }
+        .redacted { background-color: #000; color: #000; cursor: pointer; transition: background-color 0.3s; }
+        .redacted:hover { background-color: #4b4b4b; }
+        .popup { transform: scale(0.95); transition: transform 0.2s ease-in-out, opacity 0.2s; }
+        .popup.show { transform: scale(1); opacity: 1; }
+        .cli-window { background-color: #000; border: 2px solid #4b4b4b; font-family: 'Courier New', monospace; color: #00ff00; max-width: 600px; width: 90%; }
+        .cli-window p { margin: 0; line-height: 1.6; }
+        .cli-header { background-color: #333; padding: 6px; color: #fff; font-size: 14px; font-weight: bold; }
+        .cli-content { padding: 16px; border-top: 1px solid #4b4b4b; }
+        .cli-progress { font-family: 'Courier New', monospace; }
+        .blink-cursor::after { content: '_'; animation: blink 1s step-end infinite; }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .tool-button { background-color: #1a1a1a; border: 1px solid #4b4b4b; padding: 8px 16px; color: #d1d5db; font-size: 14px; cursor: pointer; transition: background-color 0.3s; }
+        .tool-button:hover { background-color: #333; }
+        .section-border { border: 1px solid #4b4b4b; }
+        .input-field { background-color: #1a1a1a; border: 1px solid #4b4b4b; color: #d1d5db; }
+        .input-field:focus { outline: none; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-black p-4 border-b border-gray-700">
+        <h1 class="text-2xl font-bold text-center text-white">Tango/Golf - Secure Messaging Platform</h1>
+    </header>
+
+    <main class="flex-grow p-6 max-w-4xl mx-auto">
+        <nav class="mb-6">
+            <div class="flex space-x-4">
+                <button onclick="toggleDropdown('inbox')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium">Inbox</button>
+                <button onclick="toggleDropdown('outbox')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium">Outbox</button>
+                <button onclick="toggleDropdown('account')" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium">Account Information</button>
+            </div>
+        </nav>
+
+        <div id="inbox" class="dropdown-content mb-6">
+            <h2 class="text-lg font-semibold mb-3 text-gray-300">Inbox</h2>
+            <div id="inbox-content" class="bg-black p-4 rounded section-border">
+                <p id="no-messages" class="text-gray-500 text-sm">No messages</p>
+            </div>
+        </div>
+
+        <div id="outbox" class="dropdown-content mb-6">
+            <h2 class="text-lg font-semibold mb-3 text-gray-300">Outbox</h2>
+            <div class="bg-black p-4 rounded section-border">
+                <p class="text-sm">As per policy, your message was marked “VANISH” – This means it is subject to removal from your mailbox, 12 hours after being sent and your sendee’s after reading, due to your hierarchical status within the organisation.</p>
+            </div>
+        </div>
+
+        <div id="account" class="dropdown-content mb-6">
+            <h2 class="text-lg font-semibold mb-3 text-gray-300">Account Information</h2>
+            <div class="bg-black p-4 rounded section-border">
+                <p class="text-sm text-gray-300 mb-3">Welcome, authorized personnel. Please enter your secure access code:</p>
+                <input type="password" id="auth-code" class="input-field p-2 rounded w-full mb-3 text-sm" placeholder="Enter secure code">
+                <div class="flex space-x-3">
+                    <button onclick="checkAuthCode()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium">Access</button>
+                    <button onclick="closeDropdown('account')" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">Cancel</button>
+                </div>
+                <div id="secure-messages-dropdown" class="dropdown-content mt-4 hidden">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Secure Messages</h2>
+                    <div class="bg-black p-4 rounded section-border">
+                        <ul id="message-list" class="space-y-2 text-sm">
+                            <li><a href="#" onclick="checkMessageDate('2009-11-03')" class="hover:underline text-gray-300">03 Nov 2009 - Subject: Confirming Updated Timetables – Utility Restructuring (Sector D-4)</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-06')" class="hover:underline text-gray-300">06 Nov 2009 - Subject: On-Site Drills and Controlled Access (Contingency)</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-09')" class="hover:underline text-gray-300">09 Nov 2009 - Subject: Personnel Attrition Ahead of Final Phase</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-11')" class="hover:underline text-gray-300">11 Nov 2009 - Subject: Containment Liability and Timeline Compression</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-14')" class="hover:underline text-gray-300">14 Nov 2009 - Subject: Redundant Comms Equipment Pre-deployment — Site K Redirection</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-16')" class="hover:underline text-gray-300">16 Nov 2009 - Subject: Reminder: Egress Locks Will Seal Automatically</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-18')" class="hover:underline text-gray-300">18 Nov 2009 - Subject: Authorization for Non-Linear Response Protocol (NLRP) — Effective Immediately</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-20')" class="hover:underline text-gray-300">20 Nov 2009 - Subject: Phase 3 Data Rotation: Enforce without Exception</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-22')" class="hover:underline text-gray-300">22 Nov 2009 - Subject: Do Not Deviate from Burn Schedule – No Extensions</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-23')" class="hover:underline text-gray-300">23 Nov 2009 – 02:41 AM - Subject: Echo Down — Multiple Points Compromised</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-25')" class="hover:underline text-gray-300">25 Nov 2009 - Subject: Reinforce Access Zones. No Exfil Until Zone 7 Is Cleared.</a></li>
+                            <li><a href="#" onclick="checkMessageDate('2009-11-27')" class="hover:underline text-gray-300">27 Nov 2009 - Subject: Shut It Down. No More Signals.</a></li>
+                            <li><a href="./darknet.html" class="hover:underline text-gray-300">23 Jul 2025 - Subject: BREACH ALERT: SECURE CHAT LOGS COMPROMISED</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-black p-4 flex justify-between items-center border-t border-gray-700">
+        <div class="flex space-x-4">
+            <button id="obfusdetect-btn" class="tool-button">ObfusDetect.exe</button>
+            <button id="translate-btn" class="tool-button">LangDetect.exe</button>
+        </div>
+        <span id="datetime" class="text-gray-500 text-sm">November 27th, 2009 – 17:00:00</span>
+    </footer>
+
+    <div id="popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden popup">
+        <div class="bg-black p-6 rounded section-border max-w-md w-full">
+            <p id="popup-message" class="text-gray-300 text-sm"></p>
+            <div id="popup-buttons" class="mt-4 flex justify-end space-x-3"></div>
+        </div>
+    </div>
+
+    <div id="email-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden popup">
+        <div class="bg-black p-6 rounded section-border max-w-md w-full">
+            <div id="email-content">
+                <p class="text-gray-300 text-sm"><strong>From:</strong> The_Sekt_Operative</p>
+                <p class="text-gray-300 text-sm"><strong>To:</strong> <span id="username" class="redacted">DrEliasVorne</span></p>
+                <p class="text-gray-300 text-sm"><strong>Subject:</strong> SHATTERED VEILS SCREAM YOUR NAME</p>
+                <p id="email-body" class="text-gray-300 text-sm">КРОВЬ ТВОЯ ВЫТЕЧЕТ НА ЗЕМЛЮ, ПРЕДАТЕЛЬ! ТЫ ВИДЕЛ ЗНАКИ В ТЕМНОТЕ? ЛЕЗВИЯ ЖДУТ ТВОЕЙ ПЛОТИ, КОГДА ЗВЕЗДЫ УПАДУТ! ПРЯЧЬСЯ, НО МЫ НАЙДЕМ ТЕБЯ ПЕРЕД КОНЦОМ 28 НОЯБРЯ 2009!</p>
+            </div>
+            <p class="mt-4 text-sm">🌐 <a href="https://example.com" id="telescope-link" class="text-blue-400 hover:underline">Telescope</a></p>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeEmailPopup()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden popup">
+        <div class="bg-black p-6 rounded section-border max-w-md w-full">
+            <h2 class="text-lg font-bold text-red-500">⚠️ SECURITY ALERT ⚠️</h2>
+            <p class="mt-2 text-gray-300 text-sm">This email has been flagged as potentially containing malware. Its contents have been scanned by corporate IT services and it may contain malicious attachments.</p>
+            <p class="mt-2 text-gray-300 text-sm">REMINDER: Company policy requires extreme caution when using company IT systems. Failure to comply will result in consequences under Subsection 4.3.1.19 of your employment contract.</p>
+            <div class="mt-4 flex justify-end space-x-3">
+                <button onclick="acceptAlert()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium">I Accept</button>
+                <button onclick="closeEmailPopup()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="translate-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden popup">
+        <div class="cli-window">
+            <div class="cli-header">LangDetect.exe - Language Analysis</div>
+            <div class="cli-content">
+                <p>[LangDetect.exe] Language detected: Russian</p>
+                <p>Translate to English? (Y/N)</p>
+                <div class="mt-4 flex justify-end space-x-3">
+                    <button onclick="translateEmail()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium">Yes, Translate</button>
+                    <button onclick="closeTranslatePopup()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="obfusdetect-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden popup">
+        <div class="cli-window">
+            <div class="cli-header">ObfusDetect.exe - Hidden Element Scanner</div>
+            <div class="cli-content">
+                <p>[ObfusDetect.exe] Scanning for hidden elements...</p>
+                <p id="obfusdetect-status" class="cli-progress">Initializing...</p>
+                <p id="progress-bar" class="cli-progress">[----------] 0%</p>
+                <button onclick="closeObfusDetect()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium mt-4">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let usernameClickCount = 0;
+        let currentTime = new Date('2009-11-27T17:00:00');
+        let scanProgress = 0;
+        let isScanning = false;
+        let isMalwareWarningAccepted = false;
+        let isEmailTranslated = false;
+        let isObfusEmailSent = false;
+
+        function updateTime() {
+            currentTime.setSeconds(currentTime.getSeconds() + 1);
+            document.getElementById('datetime').textContent = currentTime.toLocaleString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+        }
+        setInterval(updateTime, 1000);
+
+        function toggleDropdown(id) {
+            const element = document.getElementById(id);
+            const isActive = element.classList.contains('active');
+            document.querySelectorAll('.dropdown-content').forEach(el => el.classList.remove('active'));
+            if (!isActive) element.classList.add('active');
+        }
+
+        function closeDropdown(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showPopup(message, buttons) {
+            document.getElementById('popup-message').textContent = message;
+            document.getElementById('popup-buttons').innerHTML = buttons.map(btn => 
+                `<button class="${btn.class}" onclick="${btn.onclick}">${btn.text}</button>`
+            ).join('');
+            const popup = document.getElementById('popup');
+            popup.classList.remove('hidden');
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.remove('show');
+            setTimeout(() => popup.classList.add('hidden'), 200);
+        }
+
+        function checkAuthCode() {
+            const code = document.getElementById('auth-code').value;
+            if (code === 'GLoBaLPaRTnersseCuRePReMIerarChMIX') {
+                document.getElementById('secure-messages-dropdown').classList.remove('hidden');
+                closeDropdown('account');
+            } else {
+                showPopup('Invalid secure access code.', [
+                    { text: 'OK', class: 'bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+                ]);
+            }
+        }
+
+        function checkMessageDate(dateStr) {
+            const messageDate = new Date(dateStr);
+            const cutoffDate = new Date('2009-11-06');
+            if (messageDate < cutoffDate) {
+                showPopup('This user’s account is subjected to ‘Phase 3 Data Rotation’ due to their hierarchical status and mail older than 3 weeks is expunged. Please note that this is to safeguard and secure our interests as an entity; and our senior management is highly valued.', [
+                    { text: 'OK', class: 'bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+                ]);
+            }
+        }
+
+        setTimeout(() => {
+            document.getElementById('no-messages').classList.add('hidden');
+            document.getElementById('inbox-content').innerHTML += '<p><a href="#" onclick="showEmail()" class="hover:underline text-gray-300 text-sm">27 Nov 2009 - Subject: SHATTERED VEILS SCREAM YOUR NAME</a></p>';
+            showPopup('New message received in Inbox.', [
+                { text: 'OK', class: 'bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+            ]);
+        }, 30000);
+
+        function showEmail() {
+            const emailContent = document.getElementById('email-content');
+            const popup = document.getElementById('email-popup');
+            if (!isMalwareWarningAccepted) {
+                emailContent.classList.add('blur-effect');
+                const alertPopup = document.getElementById('alert-popup');
+                alertPopup.classList.remove('hidden');
+                setTimeout(() => alertPopup.classList.add('show'), 10);
+            } else if (!isEmailTranslated) {
+                showTranslatePopup();
+            }
+            popup.classList.remove('hidden');
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function acceptAlert() {
+            isMalwareWarningAccepted = true;
+            document.getElementById('alert-popup').classList.remove('show');
+            setTimeout(() => document.getElementById('alert-popup').classList.add('hidden'), 200);
+            document.getElementById('email-content').classList.remove('blur-effect');
+            if (!isEmailTranslated) {
+                showTranslatePopup();
+            }
+        }
+
+        function closeEmailPopup() {
+            const emailPopup = document.getElementById('email-popup');
+            emailPopup.classList.remove('show');
+            setTimeout(() => emailPopup.classList.add('hidden'), 200);
+            if (!isMalwareWarningAccepted) {
+                document.getElementById('alert-popup').classList.remove('show');
+                setTimeout(() => document.getElementById('alert-popup').classList.add('hidden'), 200);
+            }
+        }
+
+        function showTranslatePopup() {
+            const popup = document.getElementById('translate-popup');
+            popup.classList.remove('hidden');
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function closeTranslatePopup() {
+            const popup = document.getElementById('translate-popup');
+            popup.classList.remove('show');
+            setTimeout(() => popup.classList.add('hidden'), 200);
+        }
+
+        async function translateEmail() {
+            isEmailTranslated = true;
+            closeTranslatePopup();
+            const emailBody = document.getElementById('email-body');
+            emailBody.textContent = '';
+            emailBody.classList.add('blink-cursor');
+            const translation = 'YOUR BLOOD WILL SPILL UPON THE EARTH, TRAITOR! HAVE YOU SEEN THE SIGNS IN THE DARK? BLADES AWAIT YOUR FLESH WHEN THE STARS FALL! HIDE, BUT WE WILL FIND YOU BEFORE THE END OF NOVEMBER 28, 2009!';
+            for (let i = 0; i < translation.length; i++) {
+                emailBody.textContent += translation[i];
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            emailBody.classList.remove('blur-effect');
+            emailBody.classList.remove('blink-cursor');
+        }
+
+        document.getElementById('username').addEventListener('click', () => {
+            usernameClickCount++;
+            if (usernameClickCount >= 4) {
+                showPopup('Do you wish to perform a deep scan of what you see on the main screen?', [
+                    { text: 'Yes', class: 'bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'startObfusDetect()' },
+                    { text: 'No', class: 'bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+                ]);
+            }
+        });
+
+        document.getElementById('obfusdetect-btn').addEventListener('click', () => {
+            showPopup('Do you wish to perform a deep scan of what you see on the main screen?', [
+                { text: 'Yes', class: 'bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'startObfusDetect()' },
+                { text: 'No', class: 'bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+            ]);
+        });
+
+        document.getElementById('translate-btn').addEventListener('click', showTranslatePopup);
+
+        function startObfusDetect() {
+            closePopup();
+            const popup = document.getElementById('obfusdetect-popup');
+            popup.classList.remove('hidden');
+            setTimeout(() => popup.classList.add('show'), 10);
+            isScanning = true;
+            scanProgress = 0;
+            updateProgress();
+        }
+
+        async function updateProgress() {
+            const status = document.getElementById('obfusdetect-status');
+            const progressBar = document.getElementById('progress-bar');
+            const messages = [
+                'Running inspector.',
+                'Element located - Isolating files & code.',
+                'DO NOT TURN OFF YOUR COMPUTER.'
+            ];
+            let messageIndex = 0;
+
+            while (scanProgress < 83 && isScanning) {
+                scanProgress += 1;
+                const progressChars = Math.floor(scanProgress / 10);
+                progressBar.textContent = `[${'='.repeat(progressChars)}${'-'.repeat(10 - progressChars)}] ${scanProgress}%`;
+                status.textContent = messages[messageIndex % messages.length];
+                messageIndex++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (isScanning) {
+                status.textContent = 'Downloading Anagram Decoder by CodedRagmanNear...';
+                progressBar.textContent = '[==========] 83%';
+                await new Promise(resolve => setTimeout(resolve, 27000));
+                while (scanProgress < 100 && isScanning) {
+                    scanProgress += 1;
+                    const progressChars = Math.floor(scanProgress / 10);
+                    progressBar.textContent = `[${'='.repeat(progressChars)}${'-'.repeat(10 - progressChars)}] ${scanProgress}%`;
+                    status.textContent = messages[messageIndex % messages.length];
+                    messageIndex++;
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                if (isScanning) {
+                    status.textContent = 'Obfuscated Element is a complex anagram. - Decode further? (Y/N)';
+                    progressBar.textContent = '[==========] 100%';
+                    const cliContent = document.getElementById('obfusdetect-popup').querySelector('.cli-content');
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'mt-4 flex justify-end space-x-3';
+                    buttonContainer.innerHTML = `
+                        <button onclick="decodeFurther()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded text-sm font-medium">Yes</button>
+                        <button onclick="showCopyPrompt()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">No</button>
+                    `;
+                    cliContent.appendChild(buttonContainer);
+                }
+            }
+        }
+
+        function decodeFurther() {
+            isScanning = false;
+            document.getElementById('obfusdetect-status').textContent = 'This user\'s account only has the free version. Please upgrade on our site to be able to receive all decoding functions for 999 roubles.';
+            document.getElementById('progress-bar').textContent = '[==========] 100%';
+            const cliContent = document.getElementById('obfusdetect-popup').querySelector('.cli-content');
+            const buttonContainer = cliContent.querySelector('.mt-4');
+            buttonContainer.innerHTML = `<button onclick="showCopyPrompt()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium">OK</button>`;
+        }
+
+        function showCopyPrompt() {
+            isScanning = false;
+            if (!isObfusEmailSent) {
+                document.getElementById('inbox-content').innerHTML += '<p><a href="#" onclick="showObfusEmail()" class="hover:underline text-gray-300 text-sm">27 Nov 2009 - Subject: ANAGRAM DECODED</a></p>';
+                isObfusEmailSent = true;
+            }
+            const obfusPopup = document.getElementById('obfusdetect-popup');
+            obfusPopup.classList.remove('show');
+            setTimeout(() => obfusPopup.classList.add('hidden'), 200);
+            showPopup('Hey user. Our software\'s here for a reason. Whatever was found, was meant to be hidden. Might wanna save that decoded anagram - CodedRagmanNear', [
+                { text: 'Copy Anagram to Clipboard', class: 'bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'copyAnagram()' }
+            ]);
+        }
+
+        function showObfusEmail() {
+            const popup = document.getElementById('email-popup');
+            const emailContent = document.getElementById('email-content');
+            emailContent.innerHTML = `
+                <p class="text-gray-300 text-sm"><strong>From:</strong> CodedRagmanNear</p>
+                <p class="text-gray-300 text-sm"><strong>To:</strong> <span id="username" class="redacted">DrEliasVorne</span></p>
+                <p class="text-gray-300 text-sm"><strong>Subject:</strong> ANAGRAM DECODED</p>
+                <p id="email-body" class="text-gray-300 text-sm">OBFUSCATED ELEMENT: GLoBaLPaRTnersseCuRePReMIerarChMIX<br><br>Thank you for using our service. Please support our software. We're eating crackers and drinking TarCola at the moment. We really appreciate any help. - CodedRagmanNear</p>
+            `;
+            popup.classList.remove('hidden');
+            setTimeout(() => popup.classList.add('show'), 10);
+        }
+
+        function copyAnagram() {
+            const anagram = '!1! . !7! . 18 . 9 . 13 . !3! . 12 . 1 . 19 . 16 | !18! . 5 . 2 . 5 . 12 . 19 | !8! . 15 . 18 . 18 . 15 . 18 | !3! . 15 . 14 . 22 . 21 . 12 . 19 . 5 . 4 | !16! . 1 . 9 . 14 | !20! . 1 . 24 . 5 . 19';
+            navigator.clipboard.writeText(anagram).catch(() => {
+                showPopup('Clipboard access failed. Email sent to user.', [
+                    { text: 'OK', class: 'bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium', onclick: 'closePopup()' }
+                ]);
+            });
+            closePopup();
+        }
+
+        function closeObfusDetect() {
+            isScanning = false;
+            showCopyPrompt();
+        }
+    </script>
+</body>
+</html>
