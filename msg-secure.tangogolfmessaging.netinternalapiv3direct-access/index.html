@@ -44,6 +44,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tango/Golf - Secure Messaging Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/xlsx.full.min.js"></script>
     <style>
         body {
             background-color: #000;
@@ -127,7 +128,7 @@
                             <li><a href="#" onclick="checkMessageDate('2009-11-23')" class="hover:underline text-gray-300">23 Nov 2009 – 02:41 AM - Subject: Echo Down — Multiple Points Compromised</a></li>
                             <li><a href="#" onclick="checkMessageDate('2009-11-25')" class="hover:underline text-gray-300">25 Nov 2009 - Subject: Reinforce Access Zones. No Exfil Until Zone 7 Is Cleared.</a></li>
                             <li><a href="#" onclick="checkMessageDate('2009-11-27')" class="hover:underline text-gray-300">27 Nov 2009 - Subject: Shut It Down. No More Signals.</a></li>
-                            <li><a href="./darknet.html" class="hover:underline text-gray-300">23 Jul 2025 - Subject: BREACH ALERT: SECURE CHAT LOGS COMPROMISED</a></li>
+                            <li><a href="../norvinsk.gov.ru/darknet.html" class="hover:underline text-gray-300">23 Jul 2025 - Subject: BREACH ALERT: SECURE CHAT LOGS COMPROMISED</a></li>
                         </ul>
                     </div>
                 </div>
@@ -204,6 +205,45 @@
     </div>
 
     <script>
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+
         let usernameClickCount = 0;
         let currentTime = new Date('2009-11-27T17:00:00');
         let scanProgress = 0;
@@ -459,11 +499,6 @@
                 ]);
             });
             closePopup();
-        }
-
-        function closeObfusDetect() {
-            isScanning = false;
-            showCopyPrompt();
         }
     </script>
 </body>
